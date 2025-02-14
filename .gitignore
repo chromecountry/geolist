@@ -1,0 +1,4 @@
+.vscode/*
+library.json
+.venv
+.cache
