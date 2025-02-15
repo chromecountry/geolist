@@ -2,6 +2,8 @@ from tqdm import tqdm
 from utils import trim_year
 import json
 
+from artist_enricher import ArtistEnricher
+
 
 class SpotifyLibraryBuilder:
     """Handles organization and structuring of Spotify library data."""
@@ -49,6 +51,12 @@ class SpotifyLibraryBuilder:
             pbar.update(1)
 
         pbar.close()
+        return self.library
+
+    def enrich_artist_location(self):
+        """Enrich library with artist location data using MusicBrainz."""
+        enricher = ArtistEnricher()
+        self.library, _ = enricher.enrich_locations(self.library)
         return self.library
 
     def save(self, filename):

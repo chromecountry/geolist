@@ -108,6 +108,11 @@ class Geolist:
         if self.output_file:
             self.library_builder.save(self.output_file)
 
+        # TODO: Clean up library assigment
+        self.library = self.library_builder.enrich_artist_location()
+
+        breakpoint()
+        print(list(self.library.items())[0])
         return 0
 
 
