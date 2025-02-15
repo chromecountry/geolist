@@ -16,6 +16,7 @@ from tqdm import tqdm
 import colorama
 
 from library_builder import SpotifyLibraryBuilder
+from map_visualizer import MapVisualizer
 
 from pathlib import Path
 PROJECT_ROOT = Path(__file__).absolute().parents[1]
@@ -38,6 +39,7 @@ class Geolist:
         ))
 
         self.library_builder = SpotifyLibraryBuilder()
+        self.map_visualizer = MapVisualizer()
 
     @backoff.on_exception(
         backoff.expo,
@@ -111,8 +113,8 @@ class Geolist:
         # TODO: Clean up library assigment
         self.library = self.library_builder.enrich_artist_location()
 
-        breakpoint()
-        print(list(self.library.items())[0])
+        self.map_visualizer.create_map(self.library, 'artist_map.html')
+   
         return 0
 
 
