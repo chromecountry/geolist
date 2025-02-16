@@ -15,8 +15,8 @@ from credentials import Spotipy as SpotipyCredentials
 from tqdm import tqdm
 import colorama
 
-from library_builder import SpotifyLibraryBuilder
-from map_visualizer import MapVisualizer
+from src.builders.library_builder import SpotifyLibraryBuilder
+from src.visualizers.map_visualizer import MapVisualizer
 
 from pathlib import Path
 PROJECT_ROOT = Path(__file__).absolute().parents[1]

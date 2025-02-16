@@ -1,8 +1,8 @@
 from tqdm import tqdm
-from utils import trim_year
+from src.util.utils import trim_year
 import json
 
-from artist_enricher import ArtistEnricher
+from src.enrichers.artist_enricher import ArtistEnricher
 
 
 class SpotifyLibraryBuilder:
