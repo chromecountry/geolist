@@ -27,16 +27,22 @@ colorama.init()
 
 class Geolist:
     def __init__(self, *args, **kwargs):
+        self.token_info = kwargs.get('token_info', None)
         self.no_cache = kwargs.get('no_cache', False)
         self.verbose = kwargs.get('verbose', False)
         self.input_file = kwargs.get('input_file', None)
         self.output_file = kwargs.get('output_file', None)
-        self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-            client_id=SpotipyCredentials.SPOTIPY_CLIENT_ID,
-            client_secret=SpotipyCredentials.SPOTIPY_CLIENT_SECRET,
-            redirect_uri=SpotipyCredentials.SPOTIPY_REDIRECT_URI,
-            scope=SpotipyCredentials.SCOPE
-        ))
+
+        # TODO: Remove else statment
+        if self.token_info:
+            self.sp = spotipy.Spotify(auth=self.token_info['access_token'])
+        else:
+            self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
+                client_id=SpotipyCredentials.SPOTIPY_CLIENT_ID,
+                client_secret=SpotipyCredentials.SPOTIPY_CLIENT_SECRET,
+                redirect_uri=SpotipyCredentials.SPOTIPY_REDIRECT_URI,
+                scope=SpotipyCredentials.SCOPE
+            ))
 
         self.library_builder = SpotifyLibraryBuilder()
         self.map_visualizer = MapVisualizer()
@@ -113,7 +119,7 @@ class Geolist:
         # TODO: Clean up library assigment
         self.library = self.library_builder.enrich_artist_location()
 
-        self.map_visualizer.create_map(self.library, 'artist_map.html')
+        self.map_visualizer.create_map(self.library)
 
         return 0
 

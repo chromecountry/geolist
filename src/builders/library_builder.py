@@ -1,8 +1,11 @@
 from tqdm import tqdm
 from src.util.utils import trim_year
 import json
-
 from src.enrichers.artist_enricher import ArtistEnricher
+
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).absolute().parents[2]
+import sys; sys.path.append(str(PROJECT_ROOT))  # noqa
 
 
 class SpotifyLibraryBuilder:

@@ -5,16 +5,28 @@ from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 import time
 from tqdm import tqdm
 from typing import Dict, Tuple
-from pathlib import Path
 import json
 import backoff
 from collections import Counter
 
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).absolute().parents[2]
+import sys; sys.path.append(str(PROJECT_ROOT))  # noqa
+
 
 class MapVisualizer:
-    def __init__(self, cache_file: str = 'geocode_cache.json'):
-        self.geolocator = Nominatim(user_agent="Geolist shulalex1998@gmail.com", timeout=5)
-        self.cache_file = cache_file
+    def __init__(self):
+        self.geolocator = Nominatim(
+            user_agent="Geolist shulalex1998@gmail.com",
+            timeout=5
+        )
+        # Setup cache and output directories
+        self.cache_dir = PROJECT_ROOT / 'data' / 'cache'
+        self.output_dir = PROJECT_ROOT / 'data' / 'output'
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
+        self.cache_file = self.cache_dir / 'geocode_cache.json'
         self.location_cache = self._load_cache()
         self._initialize_stats()
 
@@ -32,7 +44,7 @@ class MapVisualizer:
     def _initialize_map(self):
         """Initialize the base map with settings."""
         return folium.Map(
-            location=[20, 0], 
+            location=[20, 0],
             zoom_start=2,
             world_copy_jump=False,
             no_wrap=True,
@@ -46,13 +58,13 @@ class MapVisualizer:
     def _load_assets(self, m):
         """Load and add CSS and JS assets to map."""
         # Load CSS
-        css_path = Path(__file__).parent.parent.parent / 'assets' / 'css' / 'tooltip.css'
+        css_path = PROJECT_ROOT / 'app' / 'static' / 'css' / 'tooltip.css'
         with open(css_path) as f:
             css = f"<style>{f.read()}</style>"
         m.get_root().html.add_child(folium.Element(css))
 
         # Load JavaScript
-        js_path = Path(__file__).parent.parent.parent / 'assets' / 'js' / 'map_bounds.js'
+        js_path = PROJECT_ROOT / 'app' / 'static' / 'js' / 'map_bounds.js'
         with open(js_path) as f:
             script = f"<script>{f.read()}</script>"
         m.get_root().html.add_child(folium.Element(script))
@@ -68,7 +80,9 @@ class MapVisualizer:
             }
         ).add_to(m)
 
-        individual_group = folium.FeatureGroup(name='Individual Points', show=False)
+        individual_group = folium.FeatureGroup(
+            name='Individual Points', show=False
+        )
         return cluster_group, individual_group
 
     def _get_location_string(self, artist_data: Dict) -> str:
@@ -99,7 +113,9 @@ class MapVisualizer:
             location = self.geolocator.geocode(location_str)
 
             if not location and ',' in location_str:
-                shorter_location = ','.join(location_str.rsplit(',', 1)[0].split(','))
+                shorter_location = ','.join(
+                    location_str.rsplit(',', 1)[0].split(',')
+                )
                 time.sleep(1)
                 location = self.geolocator.geocode(shorter_location)
                 if location:
@@ -182,8 +198,9 @@ class MapVisualizer:
             fill_opacity=0.7
         ).add_to(group)
 
-    def create_map(self, library: Dict, output_file: str = 'artist_map.html'):
+    def create_map(self, library: Dict):
         """Create an interactive map of artist locations."""
+        output_path = self.output_dir / 'artist_map.html'
         # Initialize map
         m = self._initialize_map()
 
@@ -204,8 +221,8 @@ class MapVisualizer:
         folium.LayerControl(collapsed=False).add_to(m)
 
         # Save map
-        m.save(output_file)
-        print(f"Map saved as {output_file}")
+        m.save(output_path)
+        print(f"Map saved as {output_path}")
         self._print_stats()
 
     def _print_stats(self) -> None:
@@ -213,7 +230,10 @@ class MapVisualizer:
         print("\nGeocoding Statistics:")
         print(f"Total locations: {self.stats['total_locations']}")
         print(f"Successful geocodes: {self.stats['successful_geocodes']}")
-        print(f"Successful retry geocodes: {self.stats['successful_retry_geocodes']}")
+        print(
+            f"Successful retry geocodes: "
+            f"{self.stats['successful_retry_geocodes']}"
+        )
         print(f"Failed geocodes: {self.stats['failed_geocodes']}")
         print(f"From cache: {self.stats['from_cache']}")
         print(f"Empty locations: {self.stats['empty_locations']}")
@@ -226,7 +246,7 @@ class MapVisualizer:
     def _load_cache(self) -> Dict:
         """Load geocoding cache."""
         try:
-            if Path(self.cache_file).exists():
+            if self.cache_file.exists():
                 with open(self.cache_file, 'r') as f:
                     return json.load(f)
         except Exception as e:

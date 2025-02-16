@@ -5,11 +5,14 @@ from concurrent.futures import ThreadPoolExecutor
 import backoff
 from threading import Lock
 from tqdm import tqdm
-from pathlib import Path
 import json
 from typing import Dict, Tuple
 
 from credentials import MusicBrainz as MusicBrainzCredentials
+
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).absolute().parents[2]
+import sys; sys.path.append(str(PROJECT_ROOT))  # noqa
 
 
 class ArtistEnricher:
@@ -19,9 +22,13 @@ class ArtistEnricher:
     MAX_WORKERS = 8
     MAX_RETRIES = 3
 
-    def __init__(self, cache_file: str = 'mb_cache.json'):
+    def __init__(self):
         self._initialize_stats()
-        self.cache_file = cache_file
+        # Setup cache directory and file paths
+        self.cache_dir = PROJECT_ROOT / 'data' / 'cache'
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.cache_file = self.cache_dir / 'mb_cache.json'
+
         self.cache = self._load_cache()
         self.stats_lock = Lock()
         self._setup_musicbrainz()
@@ -133,7 +140,8 @@ class ArtistEnricher:
 
         return origin_data
 
-    def _process_artist(self, artist_tuple: Tuple[str, Dict]) -> Tuple[str, Dict]:
+    def _process_artist(
+            self, artist_tuple: Tuple[str, Dict]) -> Tuple[str, Dict]:
         """Process a single artist."""
         artist_name, artist_data = artist_tuple
         try:
@@ -191,7 +199,8 @@ class ArtistEnricher:
 
         if 'from_cache' in self.stats:
             print(f"Retrieved from cache: {self.stats['from_cache']} "
-                  f"({(self.stats['from_cache']/self.stats['total'])*100:.1f}%)")
+                  f"({(self.stats['from_cache']/self.stats['total'])*100:.1f}%"
+                  f")")
 
         if self.stats['errors']:
             print("\nCommon errors:")

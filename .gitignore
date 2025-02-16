@@ -2,4 +2,7 @@ credentials.py
 .vscode/*
 library.json
 .venv
-.cache
+data/cache/*
+data/output/*
+!data/cache/.gitkeep
+!data/output/.gitkeep
