@@ -114,7 +114,7 @@ class Geolist:
         self.library = self.library_builder.enrich_artist_location()
 
         self.map_visualizer.create_map(self.library, 'artist_map.html')
-   
+
         return 0
 
 
